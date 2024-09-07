@@ -19,7 +19,7 @@ public class ObjectBehavior : MonoBehaviour
 {
 
     public ObjectType objectType;
-    public float objectScale; // TO DO: Hide this value in the inspector
+    [HideInInspector] public float objectScale;
 
 }
 
@@ -82,6 +82,9 @@ public class ObjectEditor : Editor
             EditorGUILayout.HelpBox("This object's maximum scale is " + maxValue + "!", MessageType.Warning);
             thisObjectScale.floatValue = maxValue;
         }
+
+        serializedObject.targetObject.GetComponent<Transform>().transform.localScale 
+            = new Vector3(thisObjectScale.floatValue, thisObjectScale.floatValue, thisObjectScale.floatValue);
 
         serializedObject.ApplyModifiedProperties();
 
