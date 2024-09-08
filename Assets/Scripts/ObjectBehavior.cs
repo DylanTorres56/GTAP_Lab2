@@ -37,16 +37,16 @@ public class ObjectEditor : Editor
         ObjectType editorType = (target as ObjectBehavior).objectType;
 
         EditorGUILayout.BeginHorizontal();
+
+        var ourBehaviour = GameObject.FindObjectsOfType<ObjectBehavior>(true);
+
+        var ourObjects = ourBehaviour
+            .Select(theObject => { if (theObject.objectType == editorType) { return theObject.gameObject; } else { return null; } })
+            .ToArray();
+
         if (GUILayout.Button("Select All"))
-        {           
-            var ourBehaviour = GameObject.FindObjectsOfType<ObjectBehavior>();
-
-            var ourObjects = ourBehaviour
-                .Select(theObject => { if (theObject.objectType == editorType) { return theObject.gameObject; } else { return null; } })
-                .ToArray();
+        {                       
             Selection.objects = ourObjects;
-
-            Debug.Log("This button works!");
         }
 
         if (GUILayout.Button("Clear Selection"))
@@ -55,22 +55,51 @@ public class ObjectEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
-        if (GUILayout.Button("Disable/Enable Objects", GUILayout.Height(40)))
+        var cachedColor = GUI.backgroundColor;
+
+        bool isOneDisabled = false;
+
+        foreach (var foundObject in ourObjects) 
         {
-            // TO DO: This should select each of one object type, but it currently selects all the objects. 
-            // It should also change between colors when clicked.
-            foreach (var typeOfObject in GameObject.FindObjectsOfType<ObjectBehavior>(true) ) 
+            if (foundObject == null) 
             {
-                typeOfObject.gameObject.SetActive(!typeOfObject.gameObject.activeSelf);
+                continue;
             }
+
+            if (!foundObject.activeSelf) 
+            {
+                GUI.backgroundColor = Color.red;
+                isOneDisabled = true;
+                break;
+            }
+        
+            GUI.backgroundColor = Color.green;        
             
         }
 
+
+        if (GUILayout.Button("Disable/Enable Objects", GUILayout.Height(40)))
+        {
+            
+            for (int i = 0; i < ourObjects.Length; i++) 
+            {
+                if (ourObjects[i] == null) 
+                {
+                    continue;
+                }
+
+                ourObjects[i].SetActive(isOneDisabled);
+            }
+
+        }
+
+        GUI.backgroundColor = cachedColor;
         float minValue = 0.5f, maxValue = 3.0f;
 
         serializedObject.Update();
         var thisObjectScale = serializedObject.FindProperty("objectScale");
         EditorGUILayout.PropertyField(thisObjectScale);       
+
 
         if (thisObjectScale.floatValue <= minValue)
         {
@@ -90,17 +119,6 @@ public class ObjectEditor : Editor
 
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
 }
 
 #endif
